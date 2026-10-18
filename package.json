@@ -1,0 +1,10 @@
+{
+  "name": "kobong-site-template",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "check": "node --check assets/app.js && node --check assets/model.js && node --check content/examples.js"
+  }
+}
