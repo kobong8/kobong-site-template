@@ -11,6 +11,26 @@ const checks = new Set();
 const number = n => String(n + 1).padStart(2, '0');
 const announce = message => { status.textContent = message; };
 
+function themeButton() {
+  const dark = document.documentElement.dataset.theme === 'dark';
+  return `<button data-theme-toggle aria-label="다크 모드" aria-pressed="${dark}" title="테마 전환 (T)"><span>${dark ? '☀️ 라이트 모드' : '🌙 다크 모드'}</span> <kbd>T</kbd></button>`;
+}
+
+function toggleTheme() {
+  const theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = theme;
+  try { localStorage.setItem('kobong-theme', theme); } catch {}
+  app.querySelectorAll('[data-theme-toggle]').forEach(button => {
+    button.setAttribute('aria-pressed', theme === 'dark');
+    button.querySelector('span').textContent = theme === 'dark' ? '☀️ 라이트 모드' : '🌙 다크 모드';
+  });
+  announce(`${theme === 'dark' ? '다크' : '라이트'} 모드로 전환했습니다.`);
+}
+
+app.addEventListener('click', event => {
+  if (event.target.closest('[data-theme-toggle]')) toggleTheme();
+});
+
 function blockHTML(block, chapter, index) {
   const title = block.title ? `<h3>${e(block.title)}</h3>` : '';
   switch (block.type) {
@@ -45,7 +65,7 @@ function chapterHTML(chapter, index) {
 function landing() {
   document.title = 'Kobong · Site Template';
   document.body.className = '';
-  app.innerHTML = `<main class="landing" id="main"><a class="wordmark" href="#/">Kobong<span> / KNOWLEDGE KIT</span></a><div class="landing-intro"><p class="eyebrow">EXPLAIN CLEARLY. LEARN BY DOING.</p><h1>같은 지식,<br>다른 전달 방식.</h1><p>함께 보는 발표와 직접 따라 하는 튜토리얼.<br>콘텐츠에 맞는 읽기 경험을 선택하세요.</p></div><div class="template-grid">${sites.map((site, i) => `<section class="template-card ${site.accent}"><div class="template-meta"><span>${site.label}</span><span>0${i + 1}</span></div><h2>${e(site.title)}</h2><p class="template-question">${e(site.description)}</p><p>${e(site.introduction)}</p><ul class="themes">${[...new Set(site.chapters.map(chapter => chapter.group.split(' · ')[1]))].map(group => `<li>${e(group)}</li>`).join('')}</ul><a class="button primary" href="${route(site, site.defaultMode, 0)}">${i === 0 ? '발표 템플릿 보기' : '튜토리얼 시작하기'} <span aria-hidden="true">↗</span></a><a class="secondary-link" href="${route(site, i === 0 ? 'tutorial' : 'presentation', 0)}">${i === 0 ? '스크롤로 읽기' : '발표형으로 보기'}</a></section>`).join('')}</div><p class="landing-note">KOBONG SITE TEMPLATE · SAIF 2026 디자인 기반 · 교육용 축약 예제</p></main>`;
+  app.innerHTML = `<main class="landing" id="main"><div class="landing-toolbar"><a class="wordmark" href="#/">Kobong<span> / KNOWLEDGE KIT</span></a>${themeButton()}</div><div class="landing-intro"><p class="eyebrow">EXPLAIN CLEARLY. LEARN BY DOING.</p><h1>같은 지식,<br>다른 전달 방식.</h1><p>함께 보는 발표와 직접 따라 하는 튜토리얼.<br>콘텐츠에 맞는 읽기 경험을 선택하세요.</p></div><div class="template-grid">${sites.map((site, i) => `<section class="template-card ${site.accent}"><div class="template-meta"><span>${site.label}</span><span>0${i + 1}</span></div><h2>${e(site.title)}</h2><p class="template-question">${e(site.description)}</p><p>${e(site.introduction)}</p><ul class="themes">${[...new Set(site.chapters.map(chapter => chapter.group.split(' · ')[1]))].map(group => `<li>${e(group)}</li>`).join('')}</ul><a class="button primary" href="${route(site, site.defaultMode, 0)}">${i === 0 ? '발표 템플릿 보기' : '튜토리얼 시작하기'} <span aria-hidden="true">↗</span></a><a class="secondary-link" href="${route(site, i === 0 ? 'tutorial' : 'presentation', 0)}">${i === 0 ? '스크롤로 읽기' : '발표형으로 보기'}</a></section>`).join('')}</div><p class="landing-note">KOBONG SITE TEMPLATE · SAIF 2026 디자인 기반 · 교육용 축약 예제</p></main>`;
 }
 
 function render() {
@@ -58,7 +78,7 @@ function render() {
   document.body.className = `${mode} ${site.accent}${focused ? ' focused' : ''}`;
   const groups = [...new Set(site.chapters.map(chapter => chapter.group))];
   app.innerHTML = `<aside class="sidebar"><a class="brand" href="#/">Kobong<b> /</b><small>KNOWLEDGE KIT</small></a><p class="edition">${e(site.label)} <span>EXAMPLE</span></p><p class="nav-title">${e(site.title)}</p><nav aria-label="장별 목차">${groups.map(group => `<details open><summary>${e(group)}</summary>${site.chapters.map((chapter, i) => chapter.group === group ? `<a data-index="${i}" href="${route(site, mode, i)}"><span>${number(i)}</span><span>${e(chapter.title.replaceAll('\n', ' '))}</span></a>` : '').join('')}</details>`).join('')}</nav><div class="sidebar-bottom">${e(site.author)} · ${e(site.affiliation)}<small>교육용 축약 예제</small><a href="#/">← 템플릿 선택</a></div></aside>
-    <div class="workspace"><header><a href="#/" class="breadcrumb">Kobong <span>/</span> ${e(site.title)}</a><div class="toolbar"><button id="mode">${mode === 'presentation' ? '스크롤로 읽기' : '발표형으로 보기'}</button><button id="focus" aria-pressed="${focused}">${focused ? '집중 모드 종료' : '집중 모드'} <kbd>F</kbd></button></div></header>
+    <div class="workspace"><header><a href="#/" class="breadcrumb">Kobong <span>/</span> ${e(site.title)}</a><div class="toolbar">${themeButton()}<button id="mode">${mode === 'presentation' ? '스크롤로 읽기' : '발표형으로 보기'}</button><button id="focus" aria-pressed="${focused}">${focused ? '집중 모드 종료' : '집중 모드'} <kbd>F</kbd></button></div></header>
     <div class="mobile-nav"><label for="chapter-select">목차</label><select id="chapter-select">${groups.map(group => `<optgroup label="${e(group)}">${site.chapters.map((chapter, i) => chapter.group === group ? `<option value="${i}" ${i === index ? 'selected' : ''}>${number(i)} · ${e(chapter.title.replaceAll('\n', ' '))}</option>` : '').join('')}</optgroup>`).join('')}</select></div>
     <main id="main">${mode === 'presentation' ? chapterHTML(site.chapters[index], index) : site.chapters.map(chapterHTML).join('')}</main>
     <footer><span id="counter"></span><nav class="page-dots" aria-label="장 바로가기">${site.chapters.map((chapter, i) => `<a data-index="${i}" href="${route(site, mode, i)}" aria-label="${e(chapter.title)}">${i + 1}</a>`).join('')}</nav><div class="paging"><button id="previous">← 이전</button><button id="next">다음 →</button></div></footer>
@@ -143,7 +163,9 @@ document.addEventListener('fullscreenchange', () => {
   }
 });
 document.addEventListener('keydown', event => {
-  if (!state || event.altKey || event.ctrlKey || event.metaKey || event.target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])')) return;
+  if (event.altKey || event.ctrlKey || event.metaKey || event.target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])')) return;
+  if (event.key.toLowerCase() === 't') { if (!event.repeat) toggleTheme(); event.preventDefault(); return; }
+  if (!state) return;
   if (event.key === 'Escape' && focused) { event.preventDefault(); toggleFocus(); return; }
   if (event.key.toLowerCase() === 'f') { event.preventDefault(); toggleFocus(); return; }
   if (state.mode !== 'presentation' || (event.key === ' ' && event.target.closest('button,a,summary'))) return;
